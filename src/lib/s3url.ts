@@ -1,0 +1,1 @@
+export const s3url = "https://s3.whitecloud.life/animelines/";
