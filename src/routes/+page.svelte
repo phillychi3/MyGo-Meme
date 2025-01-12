@@ -1,14 +1,15 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { currentVideo, videoList } from '$lib/stores';
+	import { currentVideo, videoList, search } from '$lib/stores';
 	import type { ItemData } from '$lib/type';
 	import { s3url } from '$lib/s3url';
 	import { fly } from 'svelte/transition';
+	import fizzy from 'fuzzy';
+	const { filter } = fizzy;
 
 	let items = $state<ItemData[]>([]);
+	let searchitem = $state<ItemData[]>([]);
 	let imagepath = $state<string>('');
 	let showCopySuccess = $state(false);
-
 	async function loadData() {
 		if ($videoList[$currentVideo]) {
 			const filePath = $videoList[$currentVideo].file;
@@ -35,15 +36,22 @@
 		}
 	}
 
-	onMount(() => {
-		if ($videoList && $currentVideo) {
+	$effect(() => {
+		if ($videoList && Object.keys($videoList).length > 0 && $currentVideo) {
 			loadData();
 		}
 	});
 
 	$effect(() => {
-		if ($videoList && $currentVideo) {
-			loadData();
+		if (items.length > 0) {
+			if ($search) {
+				let result = filter($search, items, {
+					extract: (item) => item.text
+				});
+				searchitem = result.map((item) => item.original);
+			} else {
+				searchitem = items;
+			}
 		}
 	});
 
@@ -71,14 +79,14 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"
 					></path>
 				</svg>
-				<p class="text-sm text-gray-700">圖片網址已複製到剪貼簿</p>
+				<p class="text-sm text-gray-700">圖片網址已複製</p>
 			</div>
 		</div>
 	</div>
 {/if}
 
 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-	{#each items as item}
+	{#each searchitem as item}
 		<div class="rounded-lg border p-4 shadow-md">
 			<button
 				type="button"
