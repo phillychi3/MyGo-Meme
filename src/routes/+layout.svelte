@@ -1,8 +1,8 @@
 <script lang="ts">
 	import '../app.css';
 	import { onMount } from 'svelte';
-	import { currentVideo, videoList, search } from '$lib/stores';
-	import type { VideoList } from '$lib/type';
+	import { currentVideo, videoList, search, emotion } from '$lib/stores';
+	import { emotionList } from '$lib/type';
 
 	let { children } = $props();
 
@@ -10,13 +10,18 @@
 		const response = await fetch('/allvideos.json');
 		const data = await response.json();
 		videoList.set(data);
-		console.log('%c Mygo Meme %c https://github.com/phillychi3/MyGo-Meme', 'background-color: #77bbdd;color:#fff;padding:5px 0;', 'background-color: #393D49;color:#fff;padding:4px 0;border:1px solid #77bbdd;');
+		console.log(
+			'%c Mygo Meme %c https://github.com/phillychi3/MyGo-Meme',
+			'background-color: #77bbdd;color:#fff;padding:5px 0;',
+			'background-color: #393D49;color:#fff;padding:4px 0;border:1px solid #77bbdd;'
+		);
 	});
 
 	function handleVideoChange(event: Event) {
 		const select = event.target as HTMLSelectElement;
 		currentVideo.set(select.value);
 	}
+	const emotions = Object.entries(emotionList);
 </script>
 
 <div class="min-h-screen bg-gray-50">
@@ -29,6 +34,12 @@
 			>
 				{#each Object.entries($videoList) as [id, video]}
 					<option value={id}>{video.title}</option>
+				{/each}
+			</select>
+			<select class="w-full rounded-md border p-2 md:w-24" bind:value={$emotion}>
+				<option value="">全部</option>
+				{#each emotions as [key, value]}
+					<option value={key}>{value}</option>
 				{/each}
 			</select>
 			<input

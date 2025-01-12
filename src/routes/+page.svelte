@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { currentVideo, videoList, search } from '$lib/stores';
+	import { currentVideo, videoList, search, emotion } from '$lib/stores';
 	import type { ItemData } from '$lib/type';
 	import { s3url } from '$lib/s3url';
 	import { fly } from 'svelte/transition';
@@ -44,11 +44,17 @@
 
 	$effect(() => {
 		if (items.length > 0) {
-			if ($search) {
+			if ($search || $emotion) {
 				let result = filter($search, items, {
 					extract: (item) => item.text
 				});
-				searchitem = result.map((item) => item.original);
+				if ($emotion) {
+					searchitem = result
+						.map((item) => item.original)
+						.filter((item) => item.emotion === $emotion);
+				} else {
+					searchitem = result.map((item) => item.original);
+				}
 			} else {
 				searchitem = items;
 			}
