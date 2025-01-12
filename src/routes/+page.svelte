@@ -4,6 +4,7 @@
 	import { s3url } from '$lib/s3url';
 	import { fly } from 'svelte/transition';
 	import fizzy from 'fuzzy';
+	import Imageload from '$lib/loadimage.svelte';
 	const { filter } = fizzy;
 
 	let items = $state<ItemData[]>([]);
@@ -16,7 +17,13 @@
 			imagepath = $videoList[$currentVideo].image;
 			try {
 				const dataResponse = await fetch('/' + filePath);
-				items = await dataResponse.json();
+				const newItems = await dataResponse.json();
+				items = [];
+				searchitem = [];
+				setTimeout(() => {
+					items = newItems;
+					searchitem = newItems;
+				}, 100);
 			} catch (error) {
 				console.error('Error loading data:', error);
 				items = [];
@@ -104,7 +111,11 @@
 				}}
 				aria-label="Copy image URL"
 			>
-				<img class="h-48" src={s3url + imagepath + '/' + item.frame_filename} alt="Thumbnail" />
+				<Imageload
+					class="h-48 w-full object-cover opacity-0 transition-opacity duration-300"
+					src={s3url + imagepath + '/' + item.frame_filename}
+					alt={item.text}
+				/>
 			</button>
 			<div class="space-y-2">
 				<p>Time: {item.time}s</p>

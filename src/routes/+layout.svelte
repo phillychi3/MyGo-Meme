@@ -28,7 +28,7 @@
 	<nav class="bg-white p-4 shadow-sm">
 		<div class="container mx-auto">
 			<select
-				class="w-full rounded-md border p-2 md:w-64"
+				class="w-full rounded-md border p-2 md:w-[270px]"
 				onchange={handleVideoChange}
 				value={$currentVideo}
 			>
