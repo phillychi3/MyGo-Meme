@@ -24,6 +24,15 @@
 	const emotions = Object.entries(emotionList);
 </script>
 
+<svelte:head>
+	<script
+		async
+		defer
+		src="https://cloud.umami.is/script.js"
+		data-website-id="4d7dd61d-56bf-4fc8-8b60-ca1ede202dd0"
+	></script>
+</svelte:head>
+
 <div class="min-h-screen bg-gray-50">
 	<nav class="bg-white p-4 shadow-sm">
 		<div class="container mx-auto">
