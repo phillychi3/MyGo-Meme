@@ -20,6 +20,7 @@ export interface VideoList {
 export interface ImageData {
   title: string;
 	imagepath: string;
+  imagepath_short: string;
   itemdata: ItemData;
 }
 

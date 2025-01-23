@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { currentVideo, videoList, search, emotion } from '$lib/stores';
 	import type { ItemData, ImageData } from '$lib/type';
-	import { s3url } from '$lib/s3url';
+	import { s3url, s3devurl } from '$lib/s3url';
 	import { fly } from 'svelte/transition';
 	import fizzy from 'fuzzy';
 	import Imageload from '$lib/loadimage.svelte';
@@ -26,6 +26,7 @@
 					return {
 						title: $videoList[videos].title,
 						imagepath: s3url + imagepath + '/' + item.frame_filename,
+						imagepath_short: imagepath + '/' + item.frame_filename,
 						itemdata: item
 					};
 				});
@@ -52,6 +53,7 @@
 					return {
 						title: $videoList[$currentVideo].title,
 						imagepath: s3url + imagepath + '/' + item.frame_filename,
+						imagepath_short: imagepath + '/' + item.frame_filename,
 						itemdata: item
 					};
 				});
@@ -70,7 +72,7 @@
 
 	async function copyImageUrl(imageUrl: string) {
 		try {
-			const response = await fetch(imageUrl);
+			const response = await fetch(s3devurl + imageUrl);
 			const blob = await response.blob();
 			const img = new Image();
 			const canvas = document.createElement('canvas');
@@ -186,9 +188,9 @@
 					<button
 						type="button"
 						class="mb-4 flex h-48 w-full cursor-pointer items-center justify-center rounded-md bg-gray-200 transition-opacity hover:opacity-80"
-						onclick={() => copyImageUrl(item.imagepath)}
+						onclick={() => copyImageUrl(item.imagepath_short)}
 						onkeydown={(e) => {
-							if (e.key === 'Enter' || e.key === ' ') copyImageUrl(item.imagepath);
+							if (e.key === 'Enter' || e.key === ' ') copyImageUrl(item.imagepath_short);
 						}}
 						aria-label="Copy image URL"
 					>
