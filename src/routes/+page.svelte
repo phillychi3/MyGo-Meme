@@ -10,7 +10,8 @@
 
 	let items = $state<ImageData[]>([]);
 	let searchitem = $state<ImageData[]>([]);
-	let showCopySuccess = $state(false);
+	let showCopy = $state(false);
+	let copytext = $state('');
 	let imagepath = '';
 
 	async function loadAllData() {
@@ -34,7 +35,6 @@
 				items = [];
 			}
 		}
-		console.log(newItems);
 		setTimeout(() => {
 			items = newItems;
 			searchitem = newItems;
@@ -57,7 +57,6 @@
 				});
 				items = [];
 				searchitem = [];
-				console.log(newItems);
 				setTimeout(() => {
 					items = newItems;
 					searchitem = newItems;
@@ -71,13 +70,49 @@
 
 	async function copyImageUrl(imageUrl: string) {
 		try {
+			const response = await fetch(imageUrl);
+			const blob = await response.blob();
+			const img = new Image();
+			const canvas = document.createElement('canvas');
+			const ctx = canvas.getContext('2d');
+			await new Promise((resolve, reject) => {
+				img.onload = resolve;
+				img.onerror = reject;
+				img.src = URL.createObjectURL(blob);
+			});
+			canvas.width = img.width;
+			canvas.height = img.height;
+			ctx?.drawImage(img, 0, 0);
+			canvas.toBlob(async (pngBlob) => {
+				if (pngBlob) {
+					try {
+						const data = new ClipboardItem({
+							'image/png': pngBlob
+						});
+						await navigator.clipboard.write([data]);
+						copytext = '圖片已複製';
+						showCopy = true;
+						setTimeout(() => {
+							showCopy = false;
+						}, 2000);
+					} catch (err) {
+						copytext = '複製圖片失敗，將複製網址';
+						await navigator.clipboard.writeText(imageUrl);
+						showCopy = true;
+						setTimeout(() => {
+							showCopy = false;
+						}, 2000);
+					}
+				}
+			}, 'image/png');
+		} catch (error) {
+			console.error('複製失敗:', error);
+			copytext = '複製圖片失敗，將複製網址';
 			await navigator.clipboard.writeText(imageUrl);
-			showCopySuccess = true;
+			showCopy = true;
 			setTimeout(() => {
-				showCopySuccess = false;
+				showCopy = false;
 			}, 2000);
-		} catch (err) {
-			console.error('複製失敗:', err);
 		}
 	}
 
@@ -124,7 +159,7 @@
 	<title>{pageTitle}</title>
 </svelte:head>
 
-{#if showCopySuccess}
+{#if showCopy}
 	<div class="fixed right-4 top-4 z-50" transition:fly={{ y: -20, duration: 200 }}>
 		<div class="max-w-xs rounded-xl border border-gray-200 bg-white p-4 shadow-lg">
 			<div class="flex items-center">
@@ -137,7 +172,7 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"
 					></path>
 				</svg>
-				<p class="text-sm text-gray-700">圖片網址已複製</p>
+				<p class="text-sm text-gray-700">{copytext}</p>
 			</div>
 		</div>
 	</div>
