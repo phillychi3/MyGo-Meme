@@ -1,25 +1,63 @@
 <script lang="ts">
 	import { currentVideo, videoList, search, emotion } from '$lib/stores';
-	import type { ItemData } from '$lib/type';
+	import type { ItemData, ImageData } from '$lib/type';
 	import { s3url } from '$lib/s3url';
 	import { fly } from 'svelte/transition';
 	import fizzy from 'fuzzy';
 	import Imageload from '$lib/loadimage.svelte';
+	import Infinitescrolling from '$lib/infinitescrolling.svelte';
 	const { filter } = fizzy;
 
-	let items = $state<ItemData[]>([]);
-	let searchitem = $state<ItemData[]>([]);
-	let imagepath = $state<string>('');
+	let items = $state<ImageData[]>([]);
+	let searchitem = $state<ImageData[]>([]);
 	let showCopySuccess = $state(false);
+	let imagepath = '';
+
+	async function loadAllData() {
+		const response = await fetch('/allvideos.json');
+		const data = await response.json();
+		let newItems: ImageData[] = [];
+		for (let videos in data) {
+			const filePath = data[videos].file;
+			imagepath = data[videos].image;
+			try {
+				const dataResponse = await fetch('/' + filePath);
+				const thisItems = await dataResponse.json();
+				const newItem = thisItems.map((item: ItemData) => {
+					return {
+						imagepath: s3url + imagepath + '/' + item.frame_filename,
+						itemdata: item
+					};
+				});
+				newItems = newItems.concat(newItem);
+			} catch (error) {
+				console.error('Error loading data:', error);
+				items = [];
+			}
+		}
+		console.log(newItems);
+		setTimeout(() => {
+			items = newItems;
+			searchitem = newItems;
+		}, 2000);
+	}
+
 	async function loadData() {
 		if ($videoList[$currentVideo]) {
 			const filePath = $videoList[$currentVideo].file;
 			imagepath = $videoList[$currentVideo].image;
 			try {
 				const dataResponse = await fetch('/' + filePath);
-				const newItems = await dataResponse.json();
+				const thisItems = await dataResponse.json();
+				const newItems = thisItems.map((item: ItemData) => {
+					return {
+						imagepath: s3url + imagepath + '/' + item.frame_filename,
+						itemdata: item
+					};
+				});
 				items = [];
 				searchitem = [];
+				console.log(newItems);
 				setTimeout(() => {
 					items = newItems;
 					searchitem = newItems;
@@ -44,8 +82,15 @@
 	}
 
 	$effect(() => {
-		if ($videoList && Object.keys($videoList).length > 0 && $currentVideo) {
+		if (
+			$videoList &&
+			Object.keys($videoList).length > 0 &&
+			$currentVideo &&
+			$currentVideo !== '*'
+		) {
 			loadData();
+		} else if ($videoList && Object.keys($videoList).length > 0 && $currentVideo === '*') {
+			loadAllData();
 		}
 	});
 
@@ -53,12 +98,12 @@
 		if (items.length > 0) {
 			if ($search || $emotion) {
 				let result = filter($search, items, {
-					extract: (item) => item.text
+					extract: (item) => item.itemdata.text
 				});
 				if ($emotion) {
 					searchitem = result
 						.map((item) => item.original)
-						.filter((item) => item.emotion === $emotion);
+						.filter((item) => item.itemdata.emotion === $emotion);
 				} else {
 					searchitem = result.map((item) => item.original);
 				}
@@ -98,36 +143,44 @@
 	</div>
 {/if}
 
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-	{#each searchitem as item}
-		<div class="rounded-lg border p-4 shadow-md">
-			<button
-				type="button"
-				class="mb-4 flex h-48 w-full cursor-pointer items-center justify-center rounded-md bg-gray-200 transition-opacity hover:opacity-80"
-				onclick={() => copyImageUrl(s3url + imagepath + '/' + item.frame_filename)}
-				onkeydown={(e) => {
-					if (e.key === 'Enter' || e.key === ' ')
-						copyImageUrl(s3url + imagepath + '/' + item.frame_filename);
-				}}
-				aria-label="Copy image URL"
-			>
-				<Imageload
-					class="h-48 w-full object-cover opacity-0 transition-opacity duration-300"
-					src={s3url + imagepath + '/' + item.frame_filename}
-					alt={item.text}
-				/>
-			</button>
-			<div class="space-y-2">
-				<p>Time: {item.time}s</p>
-				<p>
-					Emotion: <span class="rounded-full bg-blue-100 px-2 py-1 text-sm">{item.emotion}</span>
-				</p>
-				<div class="flex flex-wrap gap-1">
-					{#each item.objects as object}
-						<span class="rounded-full bg-gray-100 px-2 py-1 text-sm">{object}</span>
-					{/each}
+<Infinitescrolling items={searchitem}>
+	<div slot="items" let:items>
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+			{#each items as item}
+				<div class="rounded-lg border p-4 shadow-md">
+					<button
+						type="button"
+						class="mb-4 flex h-48 w-full cursor-pointer items-center justify-center rounded-md bg-gray-200 transition-opacity hover:opacity-80"
+						onclick={() => copyImageUrl(item.imagepath)}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') copyImageUrl(item.imagepath);
+						}}
+						aria-label="Copy image URL"
+					>
+						<Imageload
+							class="h-48 w-full object-cover opacity-0 transition-opacity duration-300"
+							src={item.imagepath}
+							alt={item.imagepath}
+						/>
+					</button>
+					<div class="space-y-2">
+						<p>Time: {item.itemdata.time}s</p>
+						<p>
+							Emotion: <span class="rounded-full bg-blue-100 px-2 py-1 text-sm"
+								>{item.itemdata.emotion}</span
+							>
+						</p>
+            <div class="flex flex-wrap">
+              <span class="mr-1">Object:</span>
+              <div class="flex flex-wrap gap-1">
+                {#each item.itemdata.objects as object}
+								<span class="rounded-full bg-gray-100 px-2 py-1 text-sm">{object}</span>
+                {/each}
+              </div>
+            </div>
+					</div>
 				</div>
-			</div>
+			{/each}
 		</div>
-	{/each}
-</div>
+	</div>
+</Infinitescrolling>

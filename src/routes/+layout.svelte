@@ -41,6 +41,7 @@
 				onchange={handleVideoChange}
 				value={$currentVideo}
 			>
+				<option value="*">全部</option>
 				{#each Object.entries($videoList) as [id, video]}
 					<option value={id}>{video.title}</option>
 				{/each}

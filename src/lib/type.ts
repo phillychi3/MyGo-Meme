@@ -17,6 +17,15 @@ export interface VideoList {
 	[key: string]: VideoInfo;
 }
 
+export interface ImageData {
+	imagepath: string;
+  itemdata: ItemData;
+}
+
+export interface ImageList {
+	[key: string]: ImageData;
+}
+
 export const emotionList = {
 	normal: '一般',
 	concerned: '關心',
