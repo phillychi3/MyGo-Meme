@@ -18,6 +18,7 @@ export interface VideoList {
 }
 
 export interface ImageData {
+  title: string;
 	imagepath: string;
   itemdata: ItemData;
 }

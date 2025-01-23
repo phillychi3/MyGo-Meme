@@ -14,17 +14,16 @@
 	let imagepath = '';
 
 	async function loadAllData() {
-		const response = await fetch('/allvideos.json');
-		const data = await response.json();
 		let newItems: ImageData[] = [];
-		for (let videos in data) {
-			const filePath = data[videos].file;
-			imagepath = data[videos].image;
+		for (let videos in $videoList) {
+			const filePath = $videoList[videos].file;
+			imagepath = $videoList[videos].image;
 			try {
 				const dataResponse = await fetch('/' + filePath);
 				const thisItems = await dataResponse.json();
 				const newItem = thisItems.map((item: ItemData) => {
 					return {
+						title: $videoList[videos].title,
 						imagepath: s3url + imagepath + '/' + item.frame_filename,
 						itemdata: item
 					};
@@ -51,6 +50,7 @@
 				const thisItems = await dataResponse.json();
 				const newItems = thisItems.map((item: ItemData) => {
 					return {
+						title: $videoList[$currentVideo].title,
 						imagepath: s3url + imagepath + '/' + item.frame_filename,
 						itemdata: item
 					};
@@ -164,20 +164,13 @@
 						/>
 					</button>
 					<div class="space-y-2">
-						<p>Time: {item.itemdata.time}s</p>
+						<p>{item.itemdata.text}</p>
+						<p>{item.title}</p>
 						<p>
 							Emotion: <span class="rounded-full bg-blue-100 px-2 py-1 text-sm"
 								>{item.itemdata.emotion}</span
 							>
 						</p>
-            <div class="flex flex-wrap">
-              <span class="mr-1">Object:</span>
-              <div class="flex flex-wrap gap-1">
-                {#each item.itemdata.objects as object}
-								<span class="rounded-full bg-gray-100 px-2 py-1 text-sm">{object}</span>
-                {/each}
-              </div>
-            </div>
 					</div>
 				</div>
 			{/each}
