@@ -72,41 +72,60 @@
 
 	async function copyImageUrl(imageUrl: string) {
 		try {
-			const response = await fetch(s3devurl + imageUrl);
-			const blob = await response.blob();
-			const img = new Image();
-			const canvas = document.createElement('canvas');
-			const ctx = canvas.getContext('2d');
-			await new Promise((resolve, reject) => {
-				img.onload = resolve;
-				img.onerror = reject;
-				img.src = URL.createObjectURL(blob);
-			});
-			canvas.width = img.width;
-			canvas.height = img.height;
-			ctx?.drawImage(img, 0, 0);
-			canvas.toBlob(async (pngBlob) => {
-				if (pngBlob) {
-					try {
-						const data = new ClipboardItem({
-							'image/png': pngBlob
-						});
-						await navigator.clipboard.write([data]);
-						copytext = '圖片已複製';
-						showCopy = true;
-						setTimeout(() => {
-							showCopy = false;
-						}, 2000);
-					} catch (err) {
-						copytext = '複製圖片失敗，將複製網址';
-						await navigator.clipboard.writeText(imageUrl);
-						showCopy = true;
-						setTimeout(() => {
-							showCopy = false;
-						}, 2000);
+			const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+			const makeImagePromise = async () => {
+				const data = await fetch(s3devurl + imageUrl);
+				return await data.blob();
+			};
+			if (isSafari) {
+				await navigator.clipboard.write([
+					new ClipboardItem({
+						'image/png': makeImagePromise()
+					})
+				]);
+				copytext = '圖片已複製';
+				showCopy = true;
+				setTimeout(() => {
+					showCopy = false;
+				}, 2000);
+			} else {
+				const response = await fetch(s3devurl + imageUrl);
+				const blob = await response.blob();
+				const img = new Image();
+				const canvas = document.createElement('canvas');
+				const ctx = canvas.getContext('2d');
+				await new Promise((resolve, reject) => {
+					img.onload = resolve;
+					img.onerror = reject;
+					img.src = URL.createObjectURL(blob);
+				});
+				canvas.width = img.width;
+				canvas.height = img.height;
+				ctx?.drawImage(img, 0, 0);
+				canvas.toBlob(async (pngBlob) => {
+					if (pngBlob) {
+						try {
+							// 誰家好人不能複製jpeg
+							const data = new ClipboardItem({
+								'image/png': pngBlob
+							});
+							await navigator.clipboard.write([data]);
+							copytext = '圖片已複製';
+							showCopy = true;
+							setTimeout(() => {
+								showCopy = false;
+							}, 2000);
+						} catch (err) {
+							copytext = '複製圖片失敗，將複製網址';
+							await navigator.clipboard.writeText(imageUrl);
+							showCopy = true;
+							setTimeout(() => {
+								showCopy = false;
+							}, 2000);
+						}
 					}
-				}
-			}, 'image/png');
+				}, 'image/png');
+			}
 		} catch (error) {
 			console.error('複製失敗:', error);
 			copytext = '複製圖片失敗，將複製網址';
@@ -188,7 +207,7 @@
 					<button
 						type="button"
 						class="mb-4 flex h-48 w-full cursor-pointer items-center justify-center rounded-md bg-gray-200 transition-opacity hover:opacity-80"
-						onclick={() => copyImageUrl(item.imagepath_short)}
+						onclick={async () => copyImageUrl(item.imagepath_short)}
 						onkeydown={(e) => {
 							if (e.key === 'Enter' || e.key === ' ') copyImageUrl(item.imagepath_short);
 						}}
