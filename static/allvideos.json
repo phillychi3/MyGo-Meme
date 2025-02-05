@@ -100,5 +100,11 @@
         "url": "https://ani.gamer.com.tw/animeVideo.php?sn=41924",
         "file": "ave/4.json",
         "image": "ave/4"
+    },
+    "ave-5": {
+        "title": "BanG Dream! Ave Mujica [5]",
+        "url": "https://ani.gamer.com.tw/animeVideo.php?sn=41925",
+        "file": "ave/5.json",
+        "image": "ave/5"
     }
 }
