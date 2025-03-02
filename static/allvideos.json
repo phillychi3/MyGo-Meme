@@ -106,5 +106,29 @@
         "url": "https://ani.gamer.com.tw/animeVideo.php?sn=41925",
         "file": "ave/5.json",
         "image": "ave/5"
+    },
+    "ave-6": {
+        "title": "BanG Dream! Ave Mujica [6]",
+        "url": "https://ani.gamer.com.tw/animeVideo.php?sn=41987",
+        "file": "ave/6.json",
+        "image": "ave/6"
+    },
+    "ave-7": {
+        "title": "BanG Dream! Ave Mujica [7]",
+        "url": "https://ani.gamer.com.tw/animeVideo.php?sn=42091",
+        "file": "ave/7.json",
+        "image": "ave/7"
+    },
+    "ave-8": {
+        "title": "BanG Dream! Ave Mujica [8]",
+        "url": "https://ani.gamer.com.tw/animeVideo.php?sn=42156",
+        "file": "ave/8.json",
+        "image": "ave/8"
+    },
+    "ave-9": {
+        "title": "BanG Dream! Ave Mujica [9]",
+        "url": "https://ani.gamer.com.tw/animeVideo.php?sn=42422",
+        "file": "ave/9.json",
+        "image": "ave/9"
     }
 }
